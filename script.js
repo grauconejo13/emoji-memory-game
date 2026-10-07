@@ -15,7 +15,10 @@
           const card = document.createElement('div');
           card.classList.add('memory-card');
           card.dataset.emoji = emoji;
-          card.innerHTML = `<span style="visibility: hidden;">${emoji}</span>`;
+          card.setAttribute('role', 'button');
+          card.setAttribute('tabindex', '0');
+          card.setAttribute('aria-label', 'Hidden memory card');
+          card.innerHTML = `<span style="visibility: hidden;" aria-hidden="true">${emoji}</span>`;
           memoryGame.appendChild(card);
       });
   }
@@ -31,6 +34,7 @@
       flippedCards.push(clickedCard);
       clickedCard.classList.add('flipped');
       clickedCard.firstChild.style.visibility = 'visible';
+      clickedCard.setAttribute('aria-label', `Revealed card ${clickedCard.dataset.emoji}`);
 
       if (flippedCards.length === 2) {
           checkMatch();
@@ -43,6 +47,10 @@
       if (card1.dataset.emoji === card2.dataset.emoji) {
           card1.classList.add('matched');
           card2.classList.add('matched');
+          card1.setAttribute('aria-label', `Matched card ${card1.dataset.emoji}`);
+          card2.setAttribute('aria-label', `Matched card ${card2.dataset.emoji}`);
+          card1.setAttribute('tabindex', '-1');
+          card2.setAttribute('tabindex', '-1');
           matchedPairs++;
           if (matchedPairs === emojiPairs.length) {
               setTimeout(() => alert('You win! 🎉'), 500);
@@ -53,6 +61,8 @@
               card2.classList.remove('flipped');
               card1.firstChild.style.visibility = 'hidden';
               card2.firstChild.style.visibility = 'hidden';
+              card1.setAttribute('aria-label', 'Hidden memory card');
+              card2.setAttribute('aria-label', 'Hidden memory card');
           }, 1000);
       }
       flippedCards = [];
@@ -67,6 +77,21 @@
 
       // Flip card on click
       memoryGame.addEventListener('click', handleCardFlip);
+
+      // Flip focused cards with Enter or Space
+      memoryGame.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') {
+              return;
+          }
+
+          const focusedCard = event.target.closest('.memory-card');
+          if (!focusedCard) {
+              return;
+          }
+
+          event.preventDefault();
+          handleCardFlip({ target: focusedCard });
+      });
 
       // Initialize the game for the first time
       initGame();
